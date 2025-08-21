@@ -28,7 +28,7 @@ bool api_verify(std::string passed_key){
     if(exit!=SQLITE_OK){
         std::cout<<"Error While Opening The DataBase!";
     }
-    std::string query="SELECT password_hash FROM USERS_DATA ;";
+    std::string query="SELECT api_keys FROM api_keys ;";
 
     ApiVerifyData cb_data;
     cb_data.passed_key=passed_key;

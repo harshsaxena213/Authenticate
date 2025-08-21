@@ -18,6 +18,7 @@ std::string Login(std::string username,std::string password){
     sqlite3* db;
     int exit=sqlite3_open("db.sqlite",&db);
     if(exit!=SQLITE_OK){
+        sqlite3_close(db);
         CROW_LOG_INFO<<"Error WHile Opening The DataBase";
     }
     
@@ -25,11 +26,14 @@ std::string Login(std::string username,std::string password){
     sqlite3_stmt* final_query=nullptr;
     exit=sqlite3_prepare_v2(db,query,-1,&final_query,nullptr);
     if(exit!=SQLITE_OK){
+        sqlite3_finalize(final_query);
+        sqlite3_close(db);
         CROW_LOG_INFO<<"Error WHile Preapering The Statement";
     }
 
     sqlite3_bind_text(final_query,1,username.c_str(),-1,SQLITE_TRANSIENT);
     int execute=sqlite3_step(final_query);
+
 
     if(execute==SQLITE_ROW){
         const unsigned char* db_hash = sqlite3_column_text(final_query, 0);
@@ -37,12 +41,12 @@ std::string Login(std::string username,std::string password){
             cb_data.WrongUsername=true;
             sqlite3_finalize(final_query);
             sqlite3_close(db);
-             return "Wrong Username";
+            return "Wrong Username";
         }
 
         
         std::string stored_hash(reinterpret_cast<const char*>(db_hash));
-        std::string computed_salted=username+password;
+        std::string computed_salted=password;
         unsigned char hash[SHA256_DIGEST_LENGTH];
         SHA256((const unsigned char*)computed_salted.data(),computed_salted.size(), hash);
         std::stringstream ss;
@@ -58,14 +62,24 @@ std::string Login(std::string username,std::string password){
         }
         else if (stored_hash==computed_password_hash)
         {
-            return "Correct Password";
-            sqlite3_finalize(final_query);
             sqlite3_close(db);
+            sqlite3_finalize(final_query);
+            return "Correct Password";
         }
         else{
+            sqlite3_finalize(final_query);
+            sqlite3_close(db);
             return "Error Occured";
+
         }
         
     }
+    else if(execute==SQLITE_DONE){
+        sqlite3_finalize(final_query);
+        sqlite3_close(db);
+        return "Wrong Username";
+
+    }
     
+    return "";
 }

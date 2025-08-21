@@ -1,6 +1,6 @@
 #include <crow.h>
 #include <sqlite3.h>
-#include "./include/api/users/api_verification.hpp"
+#include "./include/api/users/clients_api_verification.hpp"
 #include "./include/api/admin/admin_remove_key.hpp"
 #include "./include/api/admin/admin_api_add.hpp"
 #include "./include/api/admin/admin_api_verify.hpp"
@@ -71,7 +71,7 @@ int main(){
         }
         else{
             res.code=404;
-            res.write("Can't Register Please Refer To Docs!");
+            res.write("Can't Register Or Username Used");
             res.end();            
         }
 
